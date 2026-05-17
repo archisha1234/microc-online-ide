@@ -1,0 +1,15 @@
+{
+  "name": "microc-transpiler",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "microc_transpiler_bg.wasm",
+    "microc_transpiler.js",
+    "microc_transpiler.d.ts"
+  ],
+  "main": "microc_transpiler.js",
+  "types": "microc_transpiler.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
