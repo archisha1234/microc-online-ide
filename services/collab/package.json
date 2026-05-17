@@ -1,0 +1,16 @@
+{
+  "name": "collab",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "ts-node server.ts",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "ws": "^8.20.1",
+    "yjs": "^14.0.0-6"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "ts-node": "^10.9.2"
+  }
+}

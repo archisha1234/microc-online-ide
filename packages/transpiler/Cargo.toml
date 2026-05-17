@@ -1,0 +1,15 @@
+[package]
+name = "microc-transpiler"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+pest = "2.7"
+pest_derive = "2.7"
+
+[profile.release]
+opt-level = "s"

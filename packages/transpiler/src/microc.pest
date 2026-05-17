@@ -1,0 +1,43 @@
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* }
+
+program = { SOI ~ decl* ~ EOI }
+
+decl = { func_decl | var_decl }
+
+// Function
+func_decl = { type_spec ~ ident ~ "(" ~ param_list? ~ ")" ~ block }
+param_list = { param ~ ("," ~ param)* }
+param = { type_spec ~ ident }
+
+// Variable
+var_decl = { type_spec ~ ident ~ ("=" ~ expr)? ~ ";" }
+
+// Types
+type_spec = { "int" | "float" | "void" }
+
+// Block
+block = { "{" ~ stmt* ~ "}" }
+
+// Statements
+stmt = { if_stmt | while_stmt | return_stmt | var_decl | expr_stmt }
+if_stmt = { "if" ~ "(" ~ expr ~ ")" ~ block ~ ("else" ~ block)? }
+while_stmt = { "while" ~ "(" ~ expr ~ ")" ~ block }
+return_stmt = { "return" ~ expr? ~ ";" }
+expr_stmt = { expr ~ ";" }
+
+// Expressions
+expr = { assign }
+assign = { ident ~ "=" ~ assign | compare }
+compare = { add ~ (("==" | "!=" | "<=" | ">=" | "<" | ">") ~ add)* }
+add = { mul ~ (("+" | "-") ~ mul)* }
+mul = { unary ~ (("*" | "/") ~ unary)* }
+unary = { "-" ~ unary | primary }
+primary = { float_lit | int_lit | func_call | ident | "(" ~ expr ~ ")" }
+
+func_call = { ident ~ "(" ~ arg_list? ~ ")" }
+arg_list = { expr ~ ("," ~ expr)* }
+
+int_lit = { ASCII_DIGIT+ }
+float_lit = { ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
