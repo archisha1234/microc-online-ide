@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import MonacoEditor from '@monaco-editor/react';
+import { useAuth } from '../context/AuthContext';
+import AuthModal from './AuthModal';
 
 const SAMPLE = `int add(int a, int b) {
   return a + b;
@@ -18,8 +20,11 @@ export default function Editor() {
   const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [saved, setSaved] = useState(false);
   const transpilerRef = useRef<any>(null);
   const editorRef = useRef<any>(null);
+  const { user, token, logout } = useAuth();
 
   useEffect(() => {
     async function loadWasm() {
@@ -55,11 +60,11 @@ export default function Editor() {
     });
 
     wsProvider.on('sync', (isSynced: boolean) => {
-        setTimeout(() => {
+      setTimeout(() => {
         if (isSynced && text.length === 0) {
-            text.insert(0, SAMPLE);
+          text.insert(0, SAMPLE);
         }
-        }, 100);
+      }, 100);
     });
 
     new MonacoBinding(
@@ -83,8 +88,30 @@ export default function Editor() {
     setLoading(false);
   }
 
+  async function handleSave() {
+    if (!token) {
+      setShowAuth(true);
+      return;
+    }
+    const microc_code = editorRef.current?.getValue() || '';
+    const res = await fetch('http://localhost:3001/api/snippets', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ title: 'Untitled', microc_code, c_code: output }),
+    });
+    if (res.ok) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
       <div className="flex items-center justify-between px-6 py-3 bg-gray-800 border-b border-gray-700">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-blue-400">MicroC IDE</h1>
@@ -92,13 +119,40 @@ export default function Editor() {
             {connected ? 'Connected' : 'Disconnected'}
           </span>
         </div>
-        <button
-          onClick={handleTranspile}
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium"
-        >
-          {loading ? 'Transpiling...' : 'Transpile → C'}
-        </button>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-medium"
+          >
+            {saved ? 'Saved!' : 'Save'}
+          </button>
+          <button
+            onClick={handleTranspile}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium"
+          >
+            {loading ? 'Transpiling...' : 'Transpile → C'}
+          </button>
+          {user ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-300">{user.username}</span>
+              <button
+                onClick={logout}
+                className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAuth(true)}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded text-sm font-medium"
+            >
+              Login
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">

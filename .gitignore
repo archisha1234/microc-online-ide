@@ -10,7 +10,6 @@ out/
 
 # Rust/WASM
 target/
-pkg/
 
 # Environment
 .env
